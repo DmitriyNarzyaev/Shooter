@@ -1,5 +1,6 @@
 import { Loader } from "pixi.js";
 import Button from "./Button";
+import { Player } from "./Player";
 import { Title } from "./Title";
 import Container = PIXI.Container;
 
@@ -8,6 +9,7 @@ export default class Main_Container extends Container {
 	public static readonly HEIGHT:number = 600;
 	private _title:Title;
 	private _button:Button;
+	private _player:Player;
 
 	constructor() {
 		super();
@@ -45,5 +47,16 @@ export default class Main_Container extends Container {
 	private removeTitle():void {
 		this.removeChild(this._title);
 		this.removeChild(this._button);
+
+		this.initialPlayer();
+	}
+
+	private initialPlayer():void {
+		this._player = new Player("playerRifle");
+		this._player.width /= 2;
+		this._player.height /= 2;
+		this._player.x = (Main_Container.WIDTH - this._player.width) / 2
+		this._player.y = (Main_Container.HEIGHT - this._player.height) / 2
+		this.addChild(this._player);
 	}
 }
