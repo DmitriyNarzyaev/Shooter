@@ -1,6 +1,7 @@
 import { IPoint, Loader } from "pixi.js";
 import Button from "./Button";
 import Global from "./Global";
+import { Monster } from "./Monster";
 import { Player } from "./Player";
 import { Stage } from "./Stage";
 import { Title } from "./Title";
@@ -19,6 +20,8 @@ export default class Main_Container extends Container {
 	private BUTTON_RIGHT:boolean = false;
 	private BUTTON_UP:boolean = false;
 	private BUTTON_DOWN:boolean = false;
+	private _monsterContainer:PIXI.Container;
+	private _monster:Monster;
 
 	constructor() {
 		super();
@@ -30,6 +33,7 @@ export default class Main_Container extends Container {
 		//loader.add("background", "background.jpg");
 		loader.add("playerRifle", "player_rifle.png");
 		loader.add("playerShotgun", "player_shotgun.png");
+		loader.add("zombie", "zombie.png");
 		loader.on("complete", ()=> {
 			this.initialTitle();
 		});
@@ -56,7 +60,9 @@ export default class Main_Container extends Container {
 		this.removeTitle();
 
 		this.initialStage();
-		this.initialPlayer()
+		this.initialPlayer();
+		this.initialMonster();		//FIXME: TEST!!!!!!!!!!!
+		
 		window.addEventListener("keydown",
 			(e:KeyboardEvent) => {this._player
 			this.keyDownHandler(e);
@@ -96,7 +102,23 @@ export default class Main_Container extends Container {
 		this._playerContainer.x = (Main_Container.WIDTH - this._player.width) / 2;
 		this._playerContainer.y = (Main_Container.HEIGHT - this._player.height) / 2;
 		this._playerContainer.interactive = true;
-		
+	}
+
+	//монстр
+	private initialMonster():void {
+		let centerXCorrector:number = 20;
+		let centerYCorrector:number = 45;
+		let sizecorrector:number = 4;
+		this._monsterContainer = new PIXI.Container;
+		this.addChild(this._monsterContainer);
+		this._monster = new Monster("zombie");
+		this._monster.width /= sizecorrector;
+		this._monster.height /= sizecorrector;
+		this._monsterContainer.addChild(this._monster);
+		this._monster.x -= centerXCorrector;
+		this._monster.y -= centerYCorrector;
+		this._monsterContainer.x = 180;
+		this._monsterContainer.y = 180;
 	}
 
 	//Нажатие кнопок
@@ -134,19 +156,13 @@ export default class Main_Container extends Container {
 	//вращение персонажа
 	private playerRotationHandler(event:InteractionEvent):void {
 		let mousePoint:IPoint = this._playerContainer.parent.toLocal(event.data.global);
-		// this._playerContainer.rotation =
-		// Math.atan2 (
-		// 	mousePoint.y - this._playerContainer.y,
-		// 	mousePoint.x - this._playerContainer.x
-		// )
-
 		this.rotationObjectToTarget(this._playerContainer, mousePoint);
 	}
 
 	private rotationObjectToTarget(rotationObject:Container, targetObject:any):void {
 		rotationObject.rotation = Math.atan2 (
-			targetObject.y - this._playerContainer.y,
-			targetObject.x - this._playerContainer.x
+			targetObject.y - rotationObject.y,
+			targetObject.x - rotationObject.x
 		)
 	}
 
@@ -164,5 +180,6 @@ export default class Main_Container extends Container {
 		if (this.BUTTON_DOWN == true) {
 			this._playerContainer.y += this._player.playerSpeed;
 		}
+		this.rotationObjectToTarget(this._monsterContainer, this._playerContainer);
 	}
 }

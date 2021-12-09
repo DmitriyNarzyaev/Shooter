@@ -4,7 +4,7 @@ export class Player extends Container {
     private _player:PIXI.Sprite;
     public hitboxRadius:number = 50;
     public hitbox:PIXI.Graphics;
-    public playerSpeed:number = 1.5;
+    public playerSpeed:number = 3;
 
 	constructor(playerType:string) {
 		super();
