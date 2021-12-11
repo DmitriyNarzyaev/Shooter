@@ -3,6 +3,7 @@ import Button from "./Button";
 import Global from "./Global";
 import { Monster } from "./Monster";
 import { Player } from "./Player";
+import Shot from "./Shot";
 import { Stage } from "./Stage";
 import { Title } from "./Title";
 import Container = PIXI.Container;
@@ -22,6 +23,7 @@ export default class Main_Container extends Container {
 	private BUTTON_DOWN:boolean = false;
 	private _monsterContainer:PIXI.Container;
 	private _monster:Monster;
+	private _shots:Set<Shot> = new Set();
 
 	constructor() {
 		super();
@@ -85,11 +87,26 @@ export default class Main_Container extends Container {
 	private initialStage():void {
 		this._stage = new Stage(Main_Container.WIDTH, Main_Container.HEIGHT);
 		this.addChild(this._stage);
+		this._stage.interactive = true;
+
+		this._stage.addListener('pointertap', this.initialShot, this);	
+	}
+
+	private initialShot():void {
+		let shotStartCorrector = 35;
+		const shot = new Shot(this._playerContainer.rotation);
+		this.addChild(shot);
+		shot.x = this._playerContainer.x + (this._playerContainer.width - shotStartCorrector)
+			* Math.cos(this._playerContainer.rotation);
+		shot.y = this._playerContainer.y + (this._playerContainer.width - shotStartCorrector)
+			* Math.sin(this._playerContainer.rotation);
+		this._shots.add(shot);
 	}
 
 	//персонаж
 	private initialPlayer():void {
-		let centerCorrector:number = 35;
+		let centerXCorrector:number = 35;
+		let centerYCorrector:number = 48;
 		let sizecorrector:number = 2;
 		this._playerContainer = new PIXI.Container;
 		this.addChild(this._playerContainer);
@@ -97,8 +114,8 @@ export default class Main_Container extends Container {
 		this._player.width /= sizecorrector;
 		this._player.height /= sizecorrector;
 		this._playerContainer.addChild(this._player);
-		this._player.x -= centerCorrector;
-		this._player.y -= centerCorrector;
+		this._player.x -= centerXCorrector;
+		this._player.y -= centerYCorrector;
 		this._playerContainer.x = (Main_Container.WIDTH - this._player.width) / 2;
 		this._playerContainer.y = (Main_Container.HEIGHT - this._player.height) / 2;
 		this._playerContainer.interactive = true;
@@ -167,7 +184,7 @@ export default class Main_Container extends Container {
 	}
 
 	//движения объектов
-	private ticker():void {
+	private ticker(dt:number):void {
 		if (this.BUTTON_LEFT == true) {
 			this._playerContainer.x -= this._player.playerSpeed;
 		}
@@ -180,6 +197,22 @@ export default class Main_Container extends Container {
 		if (this.BUTTON_DOWN == true) {
 			this._playerContainer.y += this._player.playerSpeed;
 		}
+		
 		this.rotationObjectToTarget(this._monsterContainer, this._playerContainer);
+
+		this._shots.forEach((shot) => {
+			//движение пуль
+			shot.x += Math.cos(shot.gunRotationSave) * shot.shotSpeed * dt;
+			shot.y += (Math.sin(shot.gunRotationSave) * shot.shotSpeed + shot.shotSpeedY) * dt;
+
+			// if (shot && shot.parent && shot.x >= Main_Container.WIDTH + shot.width ||
+			// 	shot.y >= Main_Container.HEIGHT+shot.height ||
+			// 	shot.y <= shot.height){
+			// 	this._shots.delete(shot);
+			// 	shot.parent.removeChild(shot);
+			// }
+		});
+
+
 	}
 }
