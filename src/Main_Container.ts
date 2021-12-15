@@ -7,7 +7,6 @@ import Shot from "./Shot";
 import { Stage } from "./Stage";
 import { Title } from "./Title";
 import Container = PIXI.Container;
-import InteractionEvent = PIXI.interaction.InteractionEvent;
 
 export default class Main_Container extends Container {
 	public static readonly WIDTH:number = 1200;
@@ -64,7 +63,6 @@ export default class Main_Container extends Container {
 		this.initialStage();
 		this.initialPlayer();
 		this.initialMonster();		//FIXME: TEST!!!!!!!!!!!
-		
 		window.addEventListener("keydown",
 			(e:KeyboardEvent) => {this._player
 			this.keyDownHandler(e);
@@ -74,13 +72,12 @@ export default class Main_Container extends Container {
 			this.keyUpHandler(e);
 		},);
 		Global.PIXI_APP.ticker.add(this.ticker, this);
-		this._playerContainer.addListener('mousemove', this.playerRotationHandler, this);
 	}
 
 	//удаление заставки
 	private removeTitle():void {
 		this.removeChild(this._title);
-		this.removeChild(this._button);;
+		this.removeChild(this._button);
 	}
 
 	//уровень
@@ -88,10 +85,10 @@ export default class Main_Container extends Container {
 		this._stage = new Stage(Main_Container.WIDTH, Main_Container.HEIGHT);
 		this.addChild(this._stage);
 		this._stage.interactive = true;
-
 		this._stage.addListener('pointertap', this.initialShot, this);	
 	}
 
+	//выстрел
 	private initialShot():void {
 		let shotStartCorrector = 35;
 		const shot = new Shot(this._playerContainer.rotation);
@@ -118,14 +115,13 @@ export default class Main_Container extends Container {
 		this._player.y -= centerYCorrector;
 		this._playerContainer.x = (Main_Container.WIDTH - this._player.width) / 2;
 		this._playerContainer.y = (Main_Container.HEIGHT - this._player.height) / 2;
-		this._playerContainer.interactive = true;
 	}
 
 	//монстр
 	private initialMonster():void {
 		let centerXCorrector:number = 20;
 		let centerYCorrector:number = 45;
-		let sizecorrector:number = 4;
+		let sizecorrector:number = 5;
 		this._monsterContainer = new PIXI.Container;
 		this.addChild(this._monsterContainer);
 		this._monster = new Monster("zombie");
@@ -170,17 +166,19 @@ export default class Main_Container extends Container {
 		}
     }
 
-	//вращение персонажа
-	private playerRotationHandler(event:InteractionEvent):void {
-		let mousePoint:IPoint = this._playerContainer.parent.toLocal(event.data.global);
-		this.rotationObjectToTarget(this._playerContainer, mousePoint);
-	}
-
+	//поворот объекта к цели
 	private rotationObjectToTarget(rotationObject:Container, targetObject:any):void {
 		rotationObject.rotation = Math.atan2 (
 			targetObject.y - rotationObject.y,
 			targetObject.x - rotationObject.x
 		)
+	}
+
+	//вращение персонажа
+	private refreshPlayerRotation():void {
+		let mousePosition = Global.PIXI_APP.renderer.plugins.interaction.mouse.global;
+		let mousePoint:IPoint = this._playerContainer.parent.toLocal(mousePosition);
+		this.rotationObjectToTarget(this._playerContainer, mousePoint);
 	}
 
 	//движения объектов
@@ -198,21 +196,21 @@ export default class Main_Container extends Container {
 			this._playerContainer.y += this._player.playerSpeed;
 		}
 		
-		this.rotationObjectToTarget(this._monsterContainer, this._playerContainer);
-
+		//движение пуль
 		this._shots.forEach((shot) => {
-			//движение пуль
 			shot.x += Math.cos(shot.gunRotationSave) * shot.shotSpeed * dt;
 			shot.y += (Math.sin(shot.gunRotationSave) * shot.shotSpeed + shot.shotSpeedY) * dt;
 
-			// if (shot && shot.parent && shot.x >= Main_Container.WIDTH + shot.width ||
-			// 	shot.y >= Main_Container.HEIGHT+shot.height ||
-			// 	shot.y <= shot.height){
-			// 	this._shots.delete(shot);
-			// 	shot.parent.removeChild(shot);
-			// }
+			if (shot && shot.parent && shot.x >= Main_Container.WIDTH + shot.width ||
+				shot.y >= Main_Container.HEIGHT + shot.height ||
+				shot.y <= shot.height ||
+				shot.x <= shot.height){
+				this._shots.delete(shot);
+				shot.parent.removeChild(shot);
+			}
 		});
 
-
+		this.rotationObjectToTarget(this._monsterContainer, this._playerContainer);
+		this.refreshPlayerRotation();
 	}
 }

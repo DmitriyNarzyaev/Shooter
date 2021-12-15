@@ -11,7 +11,7 @@ export default class Shot extends Container {
         super();
         this._shot = new PIXI.Graphics();
         this._shot
-            .beginFill(0x000000)
+            .beginFill(0xffffff)
             .drawCircle(0, 0, this.shotRadius);
         this.addChild(this._shot);
         this.gunRotationSave = rotation;
