@@ -85,7 +85,7 @@ export default class Main_Container extends Container {
 		this._stage = new Stage(Main_Container.WIDTH, Main_Container.HEIGHT);
 		this.addChild(this._stage);
 		this._stage.interactive = true;
-		this._stage.addListener('pointertap', this.initialShot, this);	
+		this._stage.addListener('pointerdown', this.initialShot, this);	
 	}
 
 	//выстрел
