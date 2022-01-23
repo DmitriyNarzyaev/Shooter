@@ -5,7 +5,7 @@ export default class Shot extends Container {
 	public shotRadius:number = 2;
     public gunRotationSave:number = 0;
     public shotSpeed:number = 16;
-    public shotSpeedY:number = 0;
+    // public shotSpeedY:number = 0;
 
 	constructor(rotation:number) {
         super();

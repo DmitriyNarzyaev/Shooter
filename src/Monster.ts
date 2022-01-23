@@ -4,7 +4,7 @@ export class Monster extends Container {
     private _monster:PIXI.Sprite;
     public hitboxRadius:number = 50;
     public hitbox:PIXI.Graphics;
-    public monsterSpeed:number = 1.2;
+    public monsterSpeed:number = .8;
 
 	constructor(monsterType:string) {
 		super();

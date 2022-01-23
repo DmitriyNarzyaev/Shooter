@@ -1,4 +1,4 @@
-import { Container, Sprite } from "pixi.js";
+import { Container, Point, Sprite } from "pixi.js";
 
 export class Player extends Container {
     private _player:PIXI.Sprite;
@@ -24,5 +24,9 @@ export class Player extends Container {
         this.hitbox.x = this.hitboxRadius + hitboxGapX;
         this.hitbox.y = this.hitboxRadius + hitboxGapY;
         this.addChild(this.hitbox);
+    }
+
+    public getShotSpawnPoint():Point {
+        return new Point(235, 95);
     }
 }
