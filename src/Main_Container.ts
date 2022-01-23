@@ -111,8 +111,8 @@ export default class Main_Container extends Container {
 		this._player.width /= sizecorrector;
 		this._player.height /= sizecorrector;
 		this._playerContainer.addChild(this._player);
-		this._player.x -= this._player.hitbox.x/2.2;
-		this._player.y -= this._player.hitbox.y/2.5;
+		this._player.x -= this._player.width/2;
+		this._player.y -= this._player.height/2;
 		this._playerContainer.x = (Main_Container.WIDTH - this._player.width) / 2;
 		this._playerContainer.y = (Main_Container.HEIGHT - this._player.height) / 2;
 
@@ -192,6 +192,16 @@ export default class Main_Container extends Container {
 		this.rotationObjectToTarget(this._playerContainer, mousePoint);
 	}
 
+	//столкновения
+	private collision(player:Player, monster:Monster):boolean {
+		let playerRadius:number = player.radius*player.scale.x;
+		let monsterRadius:number = monster.radius*monster.scale.x;
+		let xdiff = this._playerContainer.x - this._monsterContainer.x;
+		let ydiff = this._playerContainer.y - this._monsterContainer.y;
+		let distance = Math.sqrt(xdiff * xdiff + ydiff * ydiff);
+		return distance<playerRadius + monsterRadius;
+	}
+
 	//движения объектов
 	private ticker(dt:number):void {
 		if (this.BUTTON_LEFT == true) {
@@ -221,10 +231,15 @@ export default class Main_Container extends Container {
 			}
 		});
 
-		// this._monsters.forEach((monster) => {
-		// 	this._monsterContainer.x += Math.cos(this._monsterContainer.rotation) * monster.monsterSpeed * dt;
-		// 	this._monsterContainer.y += (Math.sin(this._monsterContainer.rotation) * monster.monsterSpeed ) * dt;
-		// });
+		this._monsters.forEach((monster) => {
+			// this._monsterContainer.x += Math.cos(this._monsterContainer.rotation) * monster.monsterSpeed * dt;
+			// this._monsterContainer.y += (Math.sin(this._monsterContainer.rotation) * monster.monsterSpeed ) * dt;
+		
+			if (this.collision(this._player, monster)){
+				console.log("collision");
+			}
+			
+		});
 
 		this.rotationObjectToTarget(this._monsterContainer, this._playerContainer);
 		this.refreshPlayerRotation();

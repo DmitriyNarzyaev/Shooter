@@ -5,6 +5,7 @@ export class Monster extends Container {
     public hitboxRadius:number = 50;
     public hitbox:PIXI.Graphics;
     public monsterSpeed:number = .8;
+    public readonly radius:number = 170;
 
 	constructor(monsterType:string) {
 		super();
@@ -15,12 +16,12 @@ export class Monster extends Container {
         this._monster = Sprite.from(monsterType);
         this.addChild(this._monster);
 
-        this.hitbox = new PIXI.Graphics;
-        this.hitbox
-            .beginFill(0xff4499, .3)
-            .drawCircle(0, 0, 170);
-        this.hitbox.x = this._monster.width/2;
-        this.hitbox.y = this._monster.height/2;
-        this.addChild(this.hitbox);
+        // this.hitbox = new PIXI.Graphics;
+        // this.hitbox
+        //     .beginFill(0xff4499, .3)
+        //     .drawCircle(0, 0, 170);
+        // this.hitbox.x = this._monster.width/2;
+        // this.hitbox.y = this._monster.height/2;
+        // this.addChild(this.hitbox);
     }
 }
