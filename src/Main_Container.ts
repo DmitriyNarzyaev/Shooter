@@ -13,17 +13,16 @@ export default class Main_Container extends Container {
 	public static readonly HEIGHT:number = 600;
 	private _title:Title;
 	private _button:Button;
-	private _playerContainer:PIXI.Container;
 	private _player:Player;
 	private _stage:Stage;
 	private BUTTON_LEFT:boolean = false;
 	private BUTTON_RIGHT:boolean = false;
 	private BUTTON_UP:boolean = false;
 	private BUTTON_DOWN:boolean = false;
-	private _monsterContainer:PIXI.Container;
-	private _monster:Monster;
 	private _monsters:Set<Monster> = new Set();
+	private _monsterRespownPoint:number[] = [50, 50, 1150, 550, 50, 550, 1150, 50];
 	private _shots:Set<Shot> = new Set();
+	private _monsterRespownIterator:number = 0;
 
 	constructor() {
 		super();
@@ -63,7 +62,7 @@ export default class Main_Container extends Container {
 
 		this.initialStage();
 		this.initialPlayer();
-		this.initialMonster();		//FIXME: TEST!!!!!!!!!!!
+		//this.initialMonster();		//FIXME: TEST!!!!!!!!!!!
 		window.addEventListener("keydown",
 			(e:KeyboardEvent) => {this._player
 			this.keyDownHandler(e);
@@ -73,6 +72,21 @@ export default class Main_Container extends Container {
 			this.keyUpHandler(e);
 		},);
 		Global.PIXI_APP.ticker.add(this.ticker, this);
+
+		this.monsterRespButton();
+	}
+
+	//создание точек респа мобов
+	private monsterRespButton():void {
+		for (let i:number = 0; i < this._monsterRespownPoint.length; i += 2) {
+			let respPoint:PIXI.Graphics = new PIXI.Graphics;
+			respPoint
+				.beginFill(0xff0000)
+				.drawCircle(0, 0, 5);
+			this.addChild(respPoint);
+			respPoint.x = this._monsterRespownPoint[i];
+			respPoint.y = this._monsterRespownPoint[i+1];
+		}
 	}
 
 	//удаление заставки
@@ -91,9 +105,9 @@ export default class Main_Container extends Container {
 
 	//выстрел
 	private initialShot():void {
-		let shotSpawnPoint:IPoint = this._player.toGlobal(this._player.getShotSpawnPoint());
+		let shotSpawnPoint:IPoint = this._player.playerSprite.toGlobal(this._player.getShotSpawnPoint());
 
-		const shot = new Shot(this._playerContainer.rotation);
+		const shot = new Shot(this._player.rotation);
 		shot.x = shotSpawnPoint.x;
 		shot.y = shotSpawnPoint.y;
 		this.addChild(shot);
@@ -102,47 +116,32 @@ export default class Main_Container extends Container {
 
 	//персонаж
 	private initialPlayer():void {
-		// let centerXCorrector:number = 35;
-		// let centerYCorrector:number = 48;
 		let sizecorrector:number = 2;
-		this._playerContainer = new PIXI.Container;
-		this.addChild(this._playerContainer);
 		this._player = new Player("playerRifle");
 		this._player.width /= sizecorrector;
 		this._player.height /= sizecorrector;
-		this._playerContainer.addChild(this._player);
-		this._player.x -= this._player.width/2;
-		this._player.y -= this._player.height/2;
-		this._playerContainer.x = (Main_Container.WIDTH - this._player.width) / 2;
-		this._playerContainer.y = (Main_Container.HEIGHT - this._player.height) / 2;
-
-		const testBG:PIXI.Graphics = new PIXI.Graphics;
-		testBG.beginFill(0x003344, .5);
-		testBG.drawRect(0, 0, this._playerContainer.width, this._playerContainer.height);
-		this._playerContainer.addChild(testBG);
+		this.addChild(this._player);
+		this._player.x = (Main_Container.WIDTH - this._player.width) / 2;
+		this._player.y = (Main_Container.HEIGHT - this._player.height) / 2;
 	}
 
 	//монстр
 	private initialMonster():void {
 		// let centerXCorrector:number = 20;
 		// let centerYCorrector:number = 45;
+		let monster:Monster = new Monster("zombie");;
 		let sizecorrector:number = 5;
-		this._monsterContainer = new PIXI.Container;
-		this.addChild(this._monsterContainer);
-		this._monster = new Monster("zombie");
-		this._monster.width /= sizecorrector;
-		this._monster.height /= sizecorrector;
-		this._monsterContainer.addChild(this._monster);
-		this._monsters.add(this._monster);
-		this._monster.x -= this._monster.width/2;
-		this._monster.y -= this._monster.height/2;
-		this._monsterContainer.x = 180;
-		this._monsterContainer.y = 180;
+		
+		monster.width /= sizecorrector;
+		monster.height /= sizecorrector;
+		this.addChild(monster);
+		this._monsters.add(monster);
 
-		const testBG:PIXI.Graphics = new PIXI.Graphics;
-		testBG.beginFill(0x003344, .5);
-		testBG.drawRect(0, 0, this._monsterContainer.width, this._monsterContainer.height);
-		this._monsterContainer.addChild(testBG);
+		let numberRespown:number = Math.floor(Math.random()*this._monsterRespownPoint.length/2);
+		console.log(numberRespown);
+
+		monster.x = this._monsterRespownPoint[numberRespown*2];
+		monster.y = this._monsterRespownPoint[numberRespown*2 + 1];
 	}
 
 	//Нажатие кнопок
@@ -188,33 +187,38 @@ export default class Main_Container extends Container {
 	//вращение персонажа
 	private refreshPlayerRotation():void {
 		let mousePosition = Global.PIXI_APP.renderer.plugins.interaction.mouse.global;
-		let mousePoint:IPoint = this._playerContainer.parent.toLocal(mousePosition);
-		this.rotationObjectToTarget(this._playerContainer, mousePoint);
+		let mousePoint:IPoint = this._player.parent.toLocal(mousePosition);
+		this.rotationObjectToTarget(this._player, mousePoint);
 	}
 
 	//столкновения
-	private collision(player:Player, monster:Monster):boolean {
-		let playerRadius:number = player.radius*player.scale.x;
-		let monsterRadius:number = monster.radius*monster.scale.x;
-		let xdiff = this._playerContainer.x - this._monsterContainer.x;
-		let ydiff = this._playerContainer.y - this._monsterContainer.y;
-		let distance = Math.sqrt(xdiff * xdiff + ydiff * ydiff);
-		return distance<playerRadius + monsterRadius;
-	}
+	// private collision(object1:ICollision, object2:ICollision):boolean {
+	// 	let radius1:number = object1.radius * object1.scale.x;
+	// 	let radius2:number = object2.radius * object2.scale.x;
+	// 	let xdiff = this._player.x - this._monster.x;
+	// 	let ydiff = this._player.y - this._monster.y;
+	// 	let distance = Math.sqrt(xdiff * xdiff + ydiff * ydiff);
+	// 	return distance<radius1 + radius2;
+	// }
 
-	//движения объектов
 	private ticker(dt:number):void {
+		this._monsterRespownIterator ++;
+		if (this._monsterRespownIterator >= 60) {
+			this.initialMonster();
+			this._monsterRespownIterator = 0;
+		}
+
 		if (this.BUTTON_LEFT == true) {
-			this._playerContainer.x -= this._player.playerSpeed;
+			this._player.x -= this._player.playerSpeed;
 		}
 		if (this.BUTTON_RIGHT == true) {
-			this._playerContainer.x += this._player.playerSpeed;
+			this._player.x += this._player.playerSpeed;
 		}
 		if (this.BUTTON_UP == true) {
-			this._playerContainer.y -= this._player.playerSpeed;
+			this._player.y -= this._player.playerSpeed;
 		}
 		if (this.BUTTON_DOWN == true) {
-			this._playerContainer.y += this._player.playerSpeed;
+			this._player.y += this._player.playerSpeed;
 		}
 		
 		//движение пуль
@@ -231,17 +235,17 @@ export default class Main_Container extends Container {
 			}
 		});
 
-		this._monsters.forEach((monster) => {
-			// this._monsterContainer.x += Math.cos(this._monsterContainer.rotation) * monster.monsterSpeed * dt;
-			// this._monsterContainer.y += (Math.sin(this._monsterContainer.rotation) * monster.monsterSpeed ) * dt;
-		
-			if (this.collision(this._player, monster)){
-				console.log("collision");
-			}
+		if (this._monsters.size >= 1) {
+			this._monsters.forEach((monster) => {
+				monster.x += Math.cos(monster.rotation) * monster.monsterSpeed * dt;
+				monster.y += (Math.sin(monster.rotation) * monster.monsterSpeed ) * dt;
 			
-		});
-
-		this.rotationObjectToTarget(this._monsterContainer, this._playerContainer);
+				// if (this.collision(this._player, monster)){
+				// 	console.log("collision");
+				// }
+				this.rotationObjectToTarget(monster, this._player);
+			});
+		}
 		this.refreshPlayerRotation();
 	}
 }
