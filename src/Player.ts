@@ -21,10 +21,10 @@ export class Player extends Container implements ICollision {
         this.playerSprite.y -= playerYCorrector;
         this.addChild(this.playerSprite);
 
-        const testBG:PIXI.Graphics = new PIXI.Graphics;
-		testBG.beginFill(0x003344, .5);
-		testBG.drawRect(0, 0, this.width, this.height);
-		this.addChild(testBG);
+        // const testBG:PIXI.Graphics = new PIXI.Graphics;
+		// testBG.beginFill(0x003344, .5);
+		// testBG.drawRect(0, 0, this.width, this.height);
+		// this.addChild(testBG);
     }
 
     public getShotSpawnPoint():Point {

@@ -4,7 +4,7 @@ export class Monster extends Container implements ICollision {
     private _monster:PIXI.Sprite;
     public hitboxRadius:number = 50;
     public hitbox:PIXI.Graphics;
-    public monsterSpeed:number = .8;
+    public monsterSpeed:number = 1.2;
     public readonly radius:number = 170;
 
 	constructor(monsterType:string) {
@@ -21,9 +21,9 @@ export class Monster extends Container implements ICollision {
         this._monster.y -= monsterYCorrector;
         this.addChild(this._monster);
 
-        const testBG:PIXI.Graphics = new PIXI.Graphics;
-		testBG.beginFill(0x442200, .5);
-		testBG.drawRect(0, 0, this.width, this.height);
-		this.addChild(testBG);
+        // const testBG:PIXI.Graphics = new PIXI.Graphics;
+		// testBG.beginFill(0x442200, .5);
+		// testBG.drawRect(0, 0, this.width, this.height);
+		// this.addChild(testBG);
     }
 }

@@ -3,14 +3,14 @@ import Button from "./Button";
 import Global from "./Global";
 import { Monster } from "./Monster";
 import { Player } from "./Player";
-import Shot from "./Shot";
+import { Shot } from "./Shot";
 import { Stage } from "./Stage";
 import { Title } from "./Title";
 import Container = PIXI.Container;
 
 export default class Main_Container extends Container {
-	public static readonly WIDTH:number = 1200;
-	public static readonly HEIGHT:number = 600;
+	public static readonly WIDTH:number = 1500;
+	public static readonly HEIGHT:number = 700;
 	private _title:Title;
 	private _button:Button;
 	private _player:Player;
@@ -20,7 +20,11 @@ export default class Main_Container extends Container {
 	private BUTTON_UP:boolean = false;
 	private BUTTON_DOWN:boolean = false;
 	private _monsters:Set<Monster> = new Set();
-	private _monsterRespownPoint:number[] = [50, 50, 1150, 550, 50, 550, 1150, 50];
+	private _monsterRespownPoint:number[] = [
+		50, 50,
+		Main_Container.WIDTH - 50, 50,
+		50, Main_Container.HEIGHT - 50,
+		Main_Container.WIDTH - 50, Main_Container.HEIGHT - 50];
 	private _shots:Set<Shot> = new Set();
 	private _monsterRespownIterator:number = 0;
 
@@ -34,6 +38,7 @@ export default class Main_Container extends Container {
 		//loader.add("background", "background.jpg");
 		loader.add("playerRifle", "player_rifle.png");
 		loader.add("playerShotgun", "player_shotgun.png");
+		loader.add("gunshot", "shot.png");
 		loader.add("zombie", "zombie.png");
 		loader.on("complete", ()=> {
 			this.initialTitle();
@@ -107,7 +112,7 @@ export default class Main_Container extends Container {
 	private initialShot():void {
 		let shotSpawnPoint:IPoint = this._player.playerSprite.toGlobal(this._player.getShotSpawnPoint());
 
-		const shot = new Shot(this._player.rotation);
+		const shot = new Shot(this._player.rotation, "gunshot");
 		shot.x = shotSpawnPoint.x;
 		shot.y = shotSpawnPoint.y;
 		this.addChild(shot);
@@ -192,33 +197,53 @@ export default class Main_Container extends Container {
 	}
 
 	//столкновения
-	// private collision(object1:ICollision, object2:ICollision):boolean {
-	// 	let radius1:number = object1.radius * object1.scale.x;
-	// 	let radius2:number = object2.radius * object2.scale.x;
-	// 	let xdiff = this._player.x - this._monster.x;
-	// 	let ydiff = this._player.y - this._monster.y;
-	// 	let distance = Math.sqrt(xdiff * xdiff + ydiff * ydiff);
-	// 	return distance<radius1 + radius2;
-	// }
+	private collision(object1:ICollision, object2:ICollision):boolean {
+		let radius1:number = object1.radius * object1.scale.x;
+		let radius2:number = object2.radius * object2.scale.x;
+		let xdiff = object1.x - object2.x;
+		let ydiff = object1.y - object2.y;
+		let distance = Math.sqrt(xdiff * xdiff + ydiff * ydiff);
+		return distance < radius1 + radius2;
+	}
 
 	private ticker(dt:number):void {
+		const borderIndent:number = 50;
 		this._monsterRespownIterator ++;
-		if (this._monsterRespownIterator >= 60) {
+		if (this._monsterRespownIterator >= 40) {
 			this.initialMonster();
 			this._monsterRespownIterator = 0;
 		}
 
-		if (this.BUTTON_LEFT == true) {
+		const minPlayerX = borderIndent;
+		if (this.BUTTON_LEFT == true && this._player.x > minPlayerX) {
 			this._player.x -= this._player.playerSpeed;
+			if (this._player.x < minPlayerX) {
+				this._player.x = minPlayerX;
+			}
 		}
-		if (this.BUTTON_RIGHT == true) {
+
+		const maxPlayerX = Main_Container.WIDTH - borderIndent;
+		if (this.BUTTON_RIGHT == true && this._player.x < maxPlayerX) {
 			this._player.x += this._player.playerSpeed;
+			if (this._player.x > maxPlayerX) {
+				this._player.x = maxPlayerX;
+			}
 		}
-		if (this.BUTTON_UP == true) {
+
+		const minPlayerY = borderIndent;
+		if (this.BUTTON_UP == true && this._player.y > minPlayerY) {
 			this._player.y -= this._player.playerSpeed;
+			if (this._player.y < minPlayerY) {
+				this._player.y = minPlayerY;
+			}
 		}
-		if (this.BUTTON_DOWN == true) {
+
+		const maxPlayerY = Main_Container.HEIGHT - borderIndent;
+		if (this.BUTTON_DOWN == true && this._player.y < maxPlayerY) {
 			this._player.y += this._player.playerSpeed;
+			if (this._player.y > maxPlayerY) {
+				this._player.y = maxPlayerY;
+			}
 		}
 		
 		//движение пуль
@@ -228,24 +253,35 @@ export default class Main_Container extends Container {
 
 			if (shot && shot.parent && shot.x >= Main_Container.WIDTH + shot.width ||
 				shot.y >= Main_Container.HEIGHT + shot.height ||
-				shot.y <= shot.height ||
-				shot.x <= shot.height){
+				shot.y <= -shot.height ||
+				shot.x <= -shot.height){
 				this._shots.delete(shot);
 				shot.parent.removeChild(shot);
 			}
+
+			this._monsters.forEach((monster) => {
+				if (this.collision(monster, shot)){
+					console.log("Размер массива мобов = " + this._monsters.size)
+
+					this._monsters.delete(monster);
+					monster.parent.removeChild(monster);
+					this._shots.delete(shot);
+					if (shot.parent != null) {
+						shot.parent.removeChild(shot);
+					}
+				}
+			});
 		});
 
-		if (this._monsters.size >= 1) {
-			this._monsters.forEach((monster) => {
-				monster.x += Math.cos(monster.rotation) * monster.monsterSpeed * dt;
-				monster.y += (Math.sin(monster.rotation) * monster.monsterSpeed ) * dt;
-			
-				// if (this.collision(this._player, monster)){
-				// 	console.log("collision");
-				// }
-				this.rotationObjectToTarget(monster, this._player);
-			});
-		}
+		this._monsters.forEach((monster) => {
+			monster.x += Math.cos(monster.rotation) * monster.monsterSpeed * dt;
+			monster.y += (Math.sin(monster.rotation) * monster.monsterSpeed ) * dt;
+		
+			if (this.collision(this._player, monster)){
+				console.log("collision");
+			}
+			this.rotationObjectToTarget(monster, this._player);
+		});
 		this.refreshPlayerRotation();
 	}
 }
