@@ -29,8 +29,8 @@ export default class Button extends Container {
         button.addChild(buttonText);
 
         if (callback) {
-			  button.addListener('pointertap', this.pointerTabHandler, this);
-		  }
+			button.addListener('pointertap', this.pointerTabHandler, this);
+		}
     }
     
     private pointerTabHandler():void {

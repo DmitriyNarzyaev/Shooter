@@ -28,6 +28,7 @@ export default class Main_Container extends Container {
 	private _monsterRespownPoint:PIXI.Graphics[] = []
 	private _shots:Set<Shot> = new Set();
 	private _monsterRespownIterator:number = 0;
+	private _startButton:boolean = true;
 
 	constructor() {
 		super();
@@ -51,7 +52,12 @@ export default class Main_Container extends Container {
 	private initialTitle():void {
 		this._title = new Title(Main_Container.WIDTH, Main_Container.HEIGHT);
 		this.addChild(this._title);
-		this.initialButton("START");
+		if (this._startButton) {
+			this.initialButton("START");
+		} else {
+			this.initialButton("RESTART");
+		}
+		
 	}
 
 	//кнопка запуска игры
@@ -78,9 +84,6 @@ export default class Main_Container extends Container {
 			(e:KeyboardEvent) => {
 			this.keyUpHandler(e);
 		},);
-
-		// window.addEventListener('keydown', this.keyDownHandler);
-		// window.addEventListener('keyup', this.keyUpHandler);
 
 		Global.PIXI_APP.ticker.add(this.ticker, this);
 	}
@@ -137,8 +140,6 @@ export default class Main_Container extends Container {
 
 	//монстр
 	private initialMonster():void {
-		// let centerXCorrector:number = 20;
-		// let centerYCorrector:number = 45;
 		let monster:Monster = new Monster("zombie");;
 		let sizecorrector:number = 5;
 		
@@ -235,6 +236,7 @@ export default class Main_Container extends Container {
 		this._monsters.clear;
 		this._monsters = new Set();
 
+		this._startButton = false;
 		this.initialTitle();
 	}
 
@@ -319,6 +321,5 @@ export default class Main_Container extends Container {
 		if (this._player.parent) {
 			this.refreshPlayerRotation();
 		}
-		
 	}
 }
