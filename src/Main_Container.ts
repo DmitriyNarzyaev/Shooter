@@ -20,11 +20,12 @@ export default class Main_Container extends Container {
 	private BUTTON_UP:boolean = false;
 	private BUTTON_DOWN:boolean = false;
 	private _monsters:Set<Monster> = new Set();
-	private _monsterRespownPoint:number[] = [
+	private _monsterRespownPointCoordinates:number[] = [
 		50, 50,
 		Main_Container.WIDTH - 50, 50,
 		50, Main_Container.HEIGHT - 50,
 		Main_Container.WIDTH - 50, Main_Container.HEIGHT - 50];
+	private _monsterRespownPoint:PIXI.Graphics[] = []
 	private _shots:Set<Shot> = new Set();
 	private _monsterRespownIterator:number = 0;
 
@@ -67,7 +68,8 @@ export default class Main_Container extends Container {
 
 		this.initialStage();
 		this.initialPlayer();
-		//this.initialMonster();		//FIXME: TEST!!!!!!!!!!!
+		this.initialMonsterRespPoints();
+
 		window.addEventListener("keydown",
 			(e:KeyboardEvent) => {this._player
 			this.keyDownHandler(e);
@@ -76,21 +78,24 @@ export default class Main_Container extends Container {
 			(e:KeyboardEvent) => {
 			this.keyUpHandler(e);
 		},);
-		Global.PIXI_APP.ticker.add(this.ticker, this);
 
-		this.monsterRespButton();
+		// window.addEventListener('keydown', this.keyDownHandler);
+		// window.addEventListener('keyup', this.keyUpHandler);
+
+		Global.PIXI_APP.ticker.add(this.ticker, this);
 	}
 
 	//создание точек респа мобов
-	private monsterRespButton():void {
-		for (let i:number = 0; i < this._monsterRespownPoint.length; i += 2) {
+	private initialMonsterRespPoints():void {
+		for (let i:number = 0; i < this._monsterRespownPointCoordinates.length; i += 2) {
 			let respPoint:PIXI.Graphics = new PIXI.Graphics;
 			respPoint
-				.beginFill(0xff0000)
+				.beginFill(0x000000, .3)
 				.drawCircle(0, 0, 5);
 			this.addChild(respPoint);
-			respPoint.x = this._monsterRespownPoint[i];
-			respPoint.y = this._monsterRespownPoint[i+1];
+			this._monsterRespownPoint.push(respPoint);
+			respPoint.x = this._monsterRespownPointCoordinates[i];
+			respPoint.y = this._monsterRespownPointCoordinates[i+1];
 		}
 	}
 
@@ -142,11 +147,11 @@ export default class Main_Container extends Container {
 		this.addChild(monster);
 		this._monsters.add(monster);
 
-		let numberRespown:number = Math.floor(Math.random()*this._monsterRespownPoint.length/2);
+		let numberRespown:number = Math.floor(Math.random()*this._monsterRespownPointCoordinates.length/2);
 		console.log(numberRespown);
 
-		monster.x = this._monsterRespownPoint[numberRespown*2];
-		monster.y = this._monsterRespownPoint[numberRespown*2 + 1];
+		monster.x = this._monsterRespownPointCoordinates[numberRespown*2];
+		monster.y = this._monsterRespownPointCoordinates[numberRespown*2 + 1];
 	}
 
 	//Нажатие кнопок
@@ -204,6 +209,33 @@ export default class Main_Container extends Container {
 		let ydiff = object1.y - object2.y;
 		let distance = Math.sqrt(xdiff * xdiff + ydiff * ydiff);
 		return distance < radius1 + radius2;
+	}
+
+	private gameLoss():void {
+		Global.PIXI_APP.ticker.remove(this.ticker, this);
+		this._stage.removeAllListeners();
+		this.removeChild(this._stage);
+		
+		this._monsterRespownPoint.forEach(point => {
+			this.removeChild(point);
+		});
+		this._monsterRespownPoint = [];
+
+		this.removeChild(this._player);
+
+		this._shots.forEach((shot) => {
+			this.removeChild(shot);
+		});
+		this._shots.clear;
+		this._shots = new Set();
+
+		this._monsters.forEach((monster) => {
+			this.removeChild(monster);
+		});
+		this._monsters.clear;
+		this._monsters = new Set();
+
+		this.initialTitle();
 	}
 
 	private ticker(dt:number):void {
@@ -279,9 +311,14 @@ export default class Main_Container extends Container {
 		
 			if (this.collision(this._player, monster)){
 				console.log("collision");
+				this.gameLoss();
 			}
 			this.rotationObjectToTarget(monster, this._player);
 		});
-		this.refreshPlayerRotation();
+
+		if (this._player.parent) {
+			this.refreshPlayerRotation();
+		}
+		
 	}
 }
