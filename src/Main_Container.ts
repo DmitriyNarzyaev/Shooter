@@ -9,8 +9,8 @@ import { Title } from "./Title";
 import Container = PIXI.Container;
 
 export default class Main_Container extends Container {
-	public static readonly WIDTH:number = 1500;
-	public static readonly HEIGHT:number = 700;
+	public static readonly WIDTH:number = window.innerWidth;
+	public static readonly HEIGHT:number = window.innerHeight;
 	private _title:Title;
 	private _button:Button;
 	private _player:Player;
@@ -149,7 +149,6 @@ export default class Main_Container extends Container {
 		this._monsters.add(monster);
 
 		let numberRespown:number = Math.floor(Math.random()*this._monsterRespownPointCoordinates.length/2);
-		console.log(numberRespown);
 
 		monster.x = this._monsterRespownPointCoordinates[numberRespown*2];
 		monster.y = this._monsterRespownPointCoordinates[numberRespown*2 + 1];
@@ -295,7 +294,6 @@ export default class Main_Container extends Container {
 
 			this._monsters.forEach((monster) => {
 				if (this.collision(monster, shot)){
-					console.log("Размер массива мобов = " + this._monsters.size)
 
 					this._monsters.delete(monster);
 					monster.parent.removeChild(monster);
