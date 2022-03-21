@@ -1,10 +1,6 @@
-# PixiJS + Webpack starter
-Easy deployment project with:
+# Shooter game
 
-* PixiJS
-* Webpack
-* TypeScript
-* Babel
+You can start this game by clicking on the link https://dmitriynarzyaev.github.io/Shooter/
 
 ## Deployment
 * Download and install Node.js and npm (https://www.npmjs.com/get-npm)

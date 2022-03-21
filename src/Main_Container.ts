@@ -93,7 +93,7 @@ export default class Main_Container extends Container {
 		for (let i:number = 0; i < this._monsterRespownPointCoordinates.length; i += 2) {
 			let respPoint:PIXI.Graphics = new PIXI.Graphics;
 			respPoint
-				.beginFill(0x000000, .3)
+				.beginFill(0x000000, 0)
 				.drawCircle(0, 0, 5);
 			this.addChild(respPoint);
 			this._monsterRespownPoint.push(respPoint);
